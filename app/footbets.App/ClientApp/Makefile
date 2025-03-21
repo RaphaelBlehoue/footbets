@@ -1,0 +1,2 @@
+
+include scripts/setup.Makefile
