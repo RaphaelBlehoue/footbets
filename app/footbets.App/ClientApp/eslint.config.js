@@ -1,43 +1,94 @@
+// eslint.config.js
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-import tseslint from 'typescript-eslint'
+import reactX from 'eslint-plugin-react-x';
+import reactDom from 'eslint-plugin-react-dom';
+import reactPlugin from 'eslint-plugin-react';
+import prettierPlugin from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  // ✅ 1. Bloc global – Fichiers ignorés (flat config)
   {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-    ],
-    files: ['**/*.{ts,tsx}'],
+    ignores: [
+      'dist',
+      'node_modules',
+      '**/*.json',
+      '**/*.scss',
+      'assets',
+      '**/*.feature',
+      '**/*.css',
+      '**/*.spec.ts',
+      '**/e2e/**'
+    ]
+  },
+  // ✅ 2. Bloc applicatif
+  {
+    files: ['**/*.{ts,tsx}'], // uniquement TS/TSX
     languageOptions: {
       parser: tseslint.parser,
-      ecmaVersion: 2020,
-      globals: globals.browser,
       parserOptions: {
-        projectService: true,
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        projectService: true
       },
+      globals: {
+        ...globals.browser
+      }
     },
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      "react-x": reactX,
-      "react-dom": reactDom,
+      'react': reactPlugin,
+      'react-x': reactX,
+      'react-dom': reactDom,
+      'prettier': prettierPlugin
     },
+    settings: {
+      react: {
+        version: 'detect'
+      },
+      'import/resolver': {
+        typescript: {
+          project: ['./tsconfig.json']
+        },
+        node: {
+          paths: ['src'],
+          extensions: ['.js', '.jsx', '.ts', '.tsx']
+        }
+      }
+    },
+    // ✅ Extensions
+    extends: [
+      js.configs.recommended,
+      reactPlugin.configs.flat.recommended,
+      ...tseslint.configs.recommendedTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked
+    ],
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-      '@typescript-eslint/array-type': 'error',
-      ...reactX.configs["recommended-typescript"].rules,
+      ...reactX.configs['recommended-typescript'].rules,
       ...reactDom.configs.recommended.rules,
-    },
-  },
-)
+      ...prettierConfig.rules,
+
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      '@typescript-eslint/array-type': 'error',
+      'prettier/prettier': 'error',
+      'arrow-parens': [1, 'as-needed'],
+      'react/prop-types': 'off',
+      'react/display-name': 'off',
+      'no-trailing-spaces': 'error',
+      'no-console': 'warn',
+      'semi': [1, 'always'],
+      'max-len': ['error', { code: 180, tabWidth: 2 }],
+      'react/react-in-jsx-scope': 'off',
+      'react/no-unescaped-entities': 0,
+      'react/no-multi-comp': [2, { ignoreStateless: false }],
+      'import/no-unresolved': 'off',
+      'import/extensions': 'off'
+    }
+  }
+);
