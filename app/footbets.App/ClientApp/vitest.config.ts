@@ -10,7 +10,15 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ['**/*.{test}.?(c|m)[jt]s?(x)', '**/*.steps.ts'],
+    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)', '**/*.steps.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/e2e/**', // Exclure les tests E2E Playwright
+      '**/src/e2e/**',
+      '**/src/**/*.e2e.ts',
+      '**/src/**/*.e2e.spec.ts',
+    ],
     watch: false,
     reporters: ['default'],
     outputFile: 'test-report.xml',
@@ -46,6 +54,7 @@ export default defineConfig({
       ],
     },
     environment: 'jsdom',
+    setupFiles: ['./setupTests.js'],
     testTimeout: 10000,
   },
 });

@@ -7,6 +7,7 @@ import reactX from 'eslint-plugin-react-x';
 import reactDom from 'eslint-plugin-react-dom';
 import reactPlugin from 'eslint-plugin-react';
 import prettierPlugin from 'eslint-plugin-prettier';
+import vitestPlugin from 'eslint-plugin-vitest';
 import prettierConfig from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
@@ -22,6 +23,7 @@ export default tseslint.config(
       '**/*.feature',
       '**/*.css',
       '**/*.spec.ts',
+      '**/*.{test}.?(c|m)[jt]s?(x)',
       '**/e2e/**'
     ]
   },
@@ -36,7 +38,13 @@ export default tseslint.config(
         projectService: true
       },
       globals: {
-        ...globals.browser
+        ...globals.browser,
+        vi: 'readonly',
+        expect: 'readonly',
+        describe: 'readonly',
+        test: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
       }
     },
     plugins: {
@@ -45,7 +53,8 @@ export default tseslint.config(
       'react': reactPlugin,
       'react-x': reactX,
       'react-dom': reactDom,
-      'prettier': prettierPlugin
+      'prettier': prettierPlugin,
+      'vitest': vitestPlugin
     },
     settings: {
       react: {
@@ -72,8 +81,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       ...reactX.configs['recommended-typescript'].rules,
       ...reactDom.configs.recommended.rules,
+      ...vitestPlugin.configs.recommended.rules,
       ...prettierConfig.rules,
-
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/array-type': 'error',
       'prettier/prettier': 'error',
