@@ -17,12 +17,15 @@
     "jsx": "react-jsx",
     /* paths */
     "paths": {
+      "@footbets/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@features/*": ["./src/features/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@routes/*": ["./src/routes/*"],
       "@utils/*": ["./src/utils/*"],
       "@e2e/*": ["./src/e2e/*"],
+      "@apimock/*": ["./src/__apiMocks__/*"],
+      "@mocks/*": ["./src/__mocks__/*"],
     },
 
     /* Linting */

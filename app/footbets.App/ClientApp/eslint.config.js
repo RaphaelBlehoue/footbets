@@ -85,7 +85,9 @@ export default tseslint.config(
       ...prettierConfig.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/array-type': 'error',
-      'prettier/prettier': 'error',
+      'prettier/prettier': ['error', {
+        endOfLine: 'auto'
+      }],
       'arrow-parens': [1, 'as-needed'],
       'react/prop-types': 'off',
       'react/display-name': 'off',
@@ -97,7 +99,7 @@ export default tseslint.config(
       'react/no-unescaped-entities': 0,
       'react/no-multi-comp': [2, { ignoreStateless: false }],
       'import/no-unresolved': 'off',
-      'import/extensions': 'off'
+      'import/extensions': 'off',
     }
   }
 );
