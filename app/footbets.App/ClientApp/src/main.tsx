@@ -13,5 +13,6 @@ async function init() {
 }
 
 init().catch((err: unknown) => {
+  // eslint-disable-next-line no-console
   console.error('Erreur au démarrage de l’app :', err);
 });

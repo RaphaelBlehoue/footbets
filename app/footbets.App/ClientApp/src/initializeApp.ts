@@ -2,11 +2,11 @@
 async function deferRender(): Promise<ServiceWorkerRegistration | void | boolean> {
   console.log('import.meta.env.MOCK_API : ', import.meta.env.VITE_API_MOCK);
 
-  if (import.meta.env.VITE_API_MOCK === 'true') {
-    const { worker } = await import('@mocks/server');
-    return worker.start();
+  if (import.meta.env.VITE_API_MOCK !== 'true') {
+    return false;
   }
-  return false;
+  const { worker } = await import('@mocks/browser');
+  return worker.start();
 }
 
 export async function initializeApp() {
