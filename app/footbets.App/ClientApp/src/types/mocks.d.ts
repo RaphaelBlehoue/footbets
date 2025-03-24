@@ -1,4 +1,4 @@
-declare module '@footbets/__mocks__/server' {
+declare module '@mocks/server' {
   export const worker: {
     start: () => Promise<ServiceWorkerRegistration | void>;
   };
