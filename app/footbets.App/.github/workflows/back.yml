@@ -1,0 +1,50 @@
+# =====================================
+# BACKEND WORKFLOW - back.yml
+# =====================================
+
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop, release/*]
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/back.yml"
+
+jobs:
+  backend:
+    name: .NET 7/8 API CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Tests
+        run: dotnet test --no-restore --verbosity normal
+
+      - name: Publish
+        run: dotnet publish -c Release -o out
+
+      - name: Docker Build & Push
+        env:
+          DOCKER_IMAGE: yourorg/backend-api
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker build -t $DOCKER_IMAGE:latest .
+          docker push $DOCKER_IMAGE:latest

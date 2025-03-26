@@ -1,0 +1,23 @@
+[changelog]
+header = "# 📦 CHANGELOG\n"
+footer = "Merci à tous les contributeurs !"
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+tag_pattern = "v[0-9]*"
+
+[template]
+commit_template = "- {{scope}}: [{{id}}] {{message}}"
+group_by = "type"
+groups = [
+  { title = "🚀 Features", types = ["feat"] },
+  { title = "🐛 Bug Fixes", types = ["fix"] },
+  { title = "🛠 Chores", types = ["chore"] },
+  { title = "♻ Refactoring", types = ["refactor"] },
+  { title = "📜 Documentation", types = ["docs"] }
+]
+
+[template.commit_parsers]
+id = "\\[(US[0-9]+)\\]"

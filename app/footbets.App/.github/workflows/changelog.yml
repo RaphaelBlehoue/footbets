@@ -1,0 +1,36 @@
+# =====================================
+# CHANGELOG WORKFLOW - changelog.yml
+# =====================================
+
+name: Generate Changelog
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  changelog:
+    name: Generate CHANGELOG.md from tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install git-cliff
+        run: |
+          curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+          sudo mv git-cliff /usr/local/bin/
+
+      - name: Generate changelog
+        run: git-cliff -t ${{ github.ref_name }} -o CHANGELOG.md
+
+      - name: Commit & push changelog
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update CHANGELOG for ${{ github.ref_name }}"
+          git push
