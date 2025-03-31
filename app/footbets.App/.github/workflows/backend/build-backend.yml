@@ -1,0 +1,12 @@
+name: Backend CI & Build
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - "footbets.App/**"
+
+jobs:
+  build-backend:
+    uses: ./.github/workflows/backend-ci.yml
+    secrets: inherit

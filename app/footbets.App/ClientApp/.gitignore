@@ -14,6 +14,7 @@ dist-ssr
 coverage
 test-report.xml
 
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -30,3 +31,4 @@ test-report.xml
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/.pnpm-store
