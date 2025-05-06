@@ -31,4 +31,4 @@ test-report.xml
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-/.pnpm-store
+/.pnpm-store/

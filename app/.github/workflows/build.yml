@@ -88,13 +88,13 @@ jobs:
       version: ${{ needs.versioning.outputs.version }}
     secrets: inherit
 
-  # build-backend:
-  #   name: 🛠️ Build backend
-  #   needs: versioning
-  #   uses: ./.github/workflows/backend/build-backend.yml
-  #   with:
-  #     version: ${{ needs.versioning.outputs.version }}
-  #   secrets: inherit
+  backend:
+    name: 🛠️ Build backend
+    needs: versioning
+    uses: ./.github/workflows/backend/build-backend.yml
+    with:
+      version: ${{ needs.versioning.outputs.version }}
+    secrets: inherit
 
   # build-batch:
   #   name: 🛠️ Build Batch

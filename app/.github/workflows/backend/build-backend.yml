@@ -1,0 +1,98 @@
+name: Build backend
+permissions:
+  packages: write
+  contents: write
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      context_path:
+        required: false
+        type: string
+        default: "."
+  push:
+    paths:
+      - "footbets.App/**"
+      - "!footbets.App/ClientApp/**"
+
+env:
+  DOTNET_VERSION: "8.x"
+  SOLUTION_PATH: "footbets.sln"
+  BUILD_CONFIGURATION: Release
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE: backend-app
+  DOCKER_FILE_PATH: "Dockerfile.back"
+
+jobs:
+  back-build:
+    name: CI (Lint, Test, Build) [ .NET ]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v3
+      - name: ⚖️ Setup [ .NET ] SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: 🔍 Debug path
+        run: |
+          echo "WORKDIR = ${{ github.workspace }}"
+          ls -al ${{ github.workspace }}
+          ls -al ${{ github.workspace }}/..
+
+      - name: 📁 Restore dependencies [ .NET ]
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: 🔧 Install and check CSharpier format [ .NET ]
+        run: |
+          dotnet tool restore
+          dotnet csharpier check .
+
+      - name: 📃 Format validation [ .NET ]
+        run: dotnet format style --no-restore --verify-no-changes ${{ env.SOLUTION_PATH }}
+
+      - name: ⚙️ Build solution [ .NET ]
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+      - name: 🔢 Run tests with coverage
+        run: >
+          dotnet test ${{ env.SOLUTION_PATH }} --no-restore --no-build \
+            --configuration ${{ env.BUILD_CONFIGURATION }} \
+            --collect:"Xplat Code Coverage" \
+            --results-directory ./TestResults
+
+      - name: 📊 Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: ./TestResults
+          retention-days: 2
+
+  back-docker:
+    name: build docker [.NET]
+    runs-on: ubuntu-latest
+    needs: back-build
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v4
+      - name: Get current date # get the date of the build
+        id: date
+        run: echo "::set-output name=date::$(date +%s)"
+
+      - name: Build the Docker image (no push) [.NET]
+        run: |
+          IMAGE_NAME="${REGISTRY,,}/${IMAGE}"
+          CONTEXT_PATH="$GITHUB_WORKSPACE/${{ env.DOCKER_FILE_PATH }}"
+          docker build \
+            --file "$CONTEXT_PATH" \
+            --tag $IMAGE_NAME:${{ steps.date.outputs.date }} \
+            "${{ inputs.context_path }}"
