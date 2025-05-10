@@ -1,0 +1,68 @@
+name: Build Frontend image & push
+
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: "Version tag générée"
+        value: $ {{ jobs.docker_frontend_build.outputs.version }}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  WORKDIR: ./ClientApp
+
+jobs:
+  frontend_image:
+    name: Build & Push image Frontend
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.setversion.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: "5.x"
+
+      - name: Run GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+
+      - name: Set version (can be overridden)
+        id: setversion
+        run: echo "version=${{ steps.gitversion.outputs.SemVer }}" >> $GITHUB_OUTPUT
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/front-app
+          tags: |
+            type=raw,value=${{ steps.gitversion.outputs.SemVer }}
+            type=raw,value=production
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.version=${{ steps.setversion.outputs.version }}
+
+      - name: Build & Push Images
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.WORKDIR }}
+          file: ${{ env.WORKDIR }}/Dockrfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

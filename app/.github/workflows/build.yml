@@ -1,0 +1,113 @@
+name: Build & Tag Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - release/update-to-*
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  # 🌟 Versioning & Tagging COMBINED - will detect local vs remote inside steps
+  versioning:
+    name: 🗓️ Versioning & Tagging
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Extract version from branch name
+        id: extract_version
+        run: |
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          VERSION=$(echo "$BRANCH_NAME" | sed -E 's/.*-v([0-9]+\.[0-9]+\.[0-9]+)/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 🔎 Check and create Git tag if not exists
+        run: |
+          if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git fetch --tags
+            if git rev-parse "refs/tags/v${{ steps.extract_version.outputs.version }}" >/dev/null 2>&1; then
+              echo "📅 Tag v${{ steps.extract_version.outputs.version }} already exists. Skipping creation."
+            else
+              git config user.name "GitHub Actions"
+              git config user.email "actions@github.com"
+              git tag "v${{ steps.extract_version.outputs.version }}"
+              git push origin "v${{ steps.extract_version.outputs.version }}"
+              echo "🚀 Tag created and pushed."
+            fi
+          else
+            echo '⚠️ Not a git repository. Skipping tag creation step.'
+          fi
+
+      - name: 🖊️ Generate Changelog
+        run: |
+          if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git fetch --prune --unshallow || true
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ || echo "")
+            CURRENT_TAG="v${{ steps.extract_version.outputs.version }}"
+            if [ -n "$PREVIOUS_TAG" ]; then
+              echo "🔍 Previous tag: $PREVIOUS_TAG"
+              git log "$PREVIOUS_TAG".."$CURRENT_TAG" --oneline > changelog.md
+            else
+              echo "No previous tag found, showing full log."
+              git log --oneline > changelog.md
+            fi
+          else
+            echo "⚠️ Not a git repository. Skipping changelog generation."
+            echo "No changelog generated." > changelog.md
+          fi
+
+      - name: 📜 Upload Changelog Artifact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
+      - name: 🌐 Create GitHub Release
+        if: ${{ !env.ACT }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.extract_version.outputs.version }}
+          name: "Release v${{ steps.extract_version.outputs.version }}"
+          body_path: changelog.md
+
+  frontend:
+    name: 🛠️ Build Frontend
+    needs: versioning
+    uses: ./.github/workflows/frontend/build-frontend.yml
+    with:
+      version: ${{ needs.versioning.outputs.version }}
+    secrets: inherit
+
+  backend:
+    name: 🛠️ Build backend
+    needs: versioning
+    uses: ./.github/workflows/backend/build-backend.yml
+    with:
+      version: ${{ needs.versioning.outputs.version }}
+    secrets: inherit
+
+  # build-batch:
+  #   name: 🛠️ Build Batch
+  #   needs: versioning
+  #   uses: ./.github/workflows/build-batch.yml
+  #   with:
+  #     version: ${{ needs.versioning.outputs.version }}
+  #   secrets: inherit
+
+  # build-database:
+  #   name: 🛠️ Build Database
+  #   needs: versioning
+  #   uses: ./.github/workflows/build-database.yml
+  #   with:
+  #     version: ${{ needs.versioning.outputs.version }}
+  #   secrets: inherit

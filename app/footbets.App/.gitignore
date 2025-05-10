@@ -1,1 +1,2 @@
-setup-backend.sh
+setup-*
+/.pnpm-store/

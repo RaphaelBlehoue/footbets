@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "path": "app/foobets.App/ClientApp"
+    }
+  ],
+  "extensions": {
+    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "alexkrechik.cucumberautocomplete"],
+    "unwantedRecommendations": []
+  },
+  "settings": {
+    "eslint.alwaysShowStatus": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "jest.rootPath": "ClientApp",
+    "jest.showCoverageOnLoad": true,
+    "[xml]": {
+      "editor.defaultFormatter": "qub.qub-xml-vscode"
+    },
+    "[feature]": {
+      "editor.defaultFormatter": "alexkrechik.cucumberautocomplete"
+    }
+  }
+}

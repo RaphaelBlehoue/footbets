@@ -1,0 +1,22 @@
+# Base image
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# Copy solution and all project files
+COPY *.sln ./
+COPY footbets.App/*.csproj ./footbets.App/
+COPY footbets.Application/*.csproj ./footbets.Application/
+COPY footbets.Contracts/*.csproj ./footbets.Contracts/
+COPY footbets.Domain/*.csproj ./footbets.Domain/
+COPY footbets.Infrastructure/*.csproj ./footbets.Infrastructure/
+COPY footbets.Shared/*.csproj ./footbets.Shared/
+COPY footbets.Tests/*.csproj ./footbets.Tests/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy all source code
+COPY . .
+
+# Build
+RUN dotnet build footbets.sln -c Release --no-restore

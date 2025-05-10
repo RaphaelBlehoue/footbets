@@ -1,0 +1,35 @@
+# =====================================
+# BACKEND WORKFLOW - back.yml
+# =====================================
+
+name: Backend CI
+
+on:
+  workflow_call:
+
+jobs:
+  backend-ci:
+    name: .NET 7/8 API CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Tests
+        run: dotnet test --no-restore --verbosity normal
+
+      - name: Publish
+        run: dotnet publish -c Release -o out
